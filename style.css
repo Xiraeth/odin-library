@@ -189,9 +189,18 @@ form {
 }
 
 .delBtn {
+  font-size: 1.1rem;
   color: white;
   background-color: crimson;
   padding: 5px 15px;
   border-radius: 10px;
   border: 1px solid black;
+}
+
+.delBtn:hover {
+  background: rgb(187, 17, 51);
+}
+
+.delBtn:active {
+  background: rgb(161, 13, 43);
 }

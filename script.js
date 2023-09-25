@@ -17,8 +17,6 @@ let canClose = false;
 
 let delBtns;
 
-let currentRow = 1;
-
 const testBtn = document.querySelector(".test");
 
 const library = [];
@@ -54,6 +52,10 @@ function resetInputFields() {
 
 function hideWarningMessage() {
   warningMsg.classList.add("hidden");
+}
+
+function hideNumberWarningMessage() {
+  numberWarning.classList.add("hidden");
 }
 
 function AddBookToLibrary() {
@@ -118,6 +120,7 @@ submitBtn.addEventListener("click", (e) => {
         element.closest("tr").remove();
       });
     });
+    canClose = false;
   }
 });
 
