@@ -10,41 +10,30 @@ const warningMsg = document.querySelector(".warning");
 const titleGl = document.querySelector("#title");
 const authorGl = document.querySelector("#author");
 const genreGl = document.querySelector("#genre");
-const numberGl = document.querySelector("#numberOfBooks");
 const isReadGl = document.querySelector("#readCheck");
 
+const library = [];
 let canClose = false;
-
 let delBtns;
+
+// localStorage.clear();
 
 const testBtn = document.querySelector(".test");
 
-const library = [];
-
 class Book {
-  constructor(title, author, genre, numberOfBooks, hasBeenRead) {
+  constructor(title, author, genre, hasBeenRead) {
     this.title = title;
     this.author = author;
     this.genre = genre;
-    this.numberOfBooks = numberOfBooks;
     this.hasBeenRead = hasBeenRead;
   }
 
-  addBookToLibrary() {
-    if (this.title == "" || this.genre == "" || this.author == "") {
-      warningMsg.classList.remove("hidden");
-      setTimeout(hideWarningMessage, 3000);
-      return;
-    }
-
-    library.push(this);
-
+  insertBookToTable() {
     const markup = `
       <tr>
         <td>${this.title}</td>
         <td>${this.author}</td>
         <td>${this.genre}</td>
-        <td>${this.numberOfBooks}</td>
         <td><span class="checkBox">${this.hasBeenRead ? "✅" : "❌"}</span></td>
         <td><button class="delBtn">Remove</button></td>
       </tr>
@@ -54,9 +43,30 @@ class Book {
     canClose = true;
   }
 
+  addBookToLibrary() {
+    if (this.title == "" || this.genre == "" || this.author == "") {
+      warningMsg.classList.remove("hidden");
+      setTimeout(hideWarningMessage, 3000);
+      return;
+    }
+    // library.push(this);
+    let bookCount = localStorage.getItem("bookCount");
+    localStorage.setItem(`book--${bookCount}`, JSON.stringify(this));
+    bookCount++;
+    localStorage.setItem("bookCount", bookCount);
+  }
+
   getBookSummary = function () {
-    return `${title} is written by ${author}. It is a ${genre} book with ${numberOfBooks} in it's series.`;
+    return `${title} is written by ${author} and it is a ${genre} book.`;
   };
+}
+
+function createLocalStorage() {
+  if (localStorage.getItem("bookCount")) return;
+  else localStorage.setItem("bookCount", 0);
+
+  if (localStorage.getItem(`library`)) return;
+  else localStorage.setItem("library", []);
 }
 
 function closeModal() {
@@ -71,7 +81,6 @@ function resetInputFields() {
   titleGl.value = "";
   authorGl.value = "";
   genreGl.value = "";
-  numberGl.value = "";
   isReadGl.checked = false;
 }
 
@@ -82,6 +91,9 @@ function hideWarningMessage() {
 function hideNumberWarningMessage() {
   numberWarning.classList.add("hidden");
 }
+
+/* -------- Functionality of the page -------- */
+createLocalStorage();
 
 // Open modal
 addBookBtn.addEventListener("click", openModal);
@@ -101,11 +113,11 @@ submitBtn.addEventListener("click", (e) => {
     titleGl.value,
     authorGl.value,
     genreGl.value,
-    numberGl.value,
     isReadGl.checked
   );
 
   book.addBookToLibrary();
+  book.insertBookToTable();
   if (canClose) {
     hideWarningMessage();
     closeModal();
@@ -125,4 +137,20 @@ window.addEventListener("click", (e) => {
   const read = e.target.closest(".checkBox");
   if (!read) return;
   read.textContent = read.textContent == "✅" ? "❌" : "✅";
+});
+
+window.addEventListener("load", () => {
+  let bookCount = localStorage.getItem("bookCount");
+  console.log(`Book count is: ${bookCount}`);
+  for (let i = 0; i < bookCount; i++) {
+    const storedData = localStorage.getItem(`book--${i}`);
+    const parsedData = JSON.parse(storedData);
+    const book = new Book(
+      parsedData.title,
+      parsedData.author,
+      parsedData.genre,
+      parsedData.hasBeenRead
+    );
+    book.insertBookToTable();
+  }
 });
