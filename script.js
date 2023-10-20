@@ -15,22 +15,40 @@ const isReadGl = document.querySelector("#readCheck");
 const library = [];
 let canClose = false;
 let delBtns;
+let bookCount;
 
-// localStorage.clear();
+  // localStorage.clear();
 
 const testBtn = document.querySelector(".test");
 
 class Book {
-  constructor(title, author, genre, hasBeenRead) {
+  constructor(title, author, genre, hasBeenRead, id) {
     this.title = title;
     this.author = author;
     this.genre = genre;
     this.hasBeenRead = hasBeenRead;
+	this.id = id;
+  }
+
+  addBookToLibrary() {
+    if (this.title == "" || this.genre == "" || this.author == "") {
+      warningMsg.classList.remove("hidden");
+      setTimeout(hideWarningMessage, 3000);
+	  console.log(canClose);
+      return;
+    }
+    let bookCount = localStorage.getItem("bookCount");
+    localStorage.setItem(`book--${bookCount}`, JSON.stringify(this));
+    bookCount++;
+    localStorage.setItem("bookCount", bookCount);
+	
+	this.insertBookToTable();
   }
 
   insertBookToTable() {
+	let count = localStorage.getItem('bookCount');
     const markup = `
-      <tr>
+      <tr data-id="table-row-${count - 1}">
         <td>${this.title}</td>
         <td>${this.author}</td>
         <td>${this.genre}</td>
@@ -41,19 +59,7 @@ class Book {
     booksTable.insertAdjacentHTML("beforeend", markup);
     delBtns = document.querySelectorAll(".delBtn");
     canClose = true;
-  }
-
-  addBookToLibrary() {
-    if (this.title == "" || this.genre == "" || this.author == "") {
-      warningMsg.classList.remove("hidden");
-      setTimeout(hideWarningMessage, 3000);
-      return;
-    }
-    // library.push(this);
-    let bookCount = localStorage.getItem("bookCount");
-    localStorage.setItem(`book--${bookCount}`, JSON.stringify(this));
-    bookCount++;
-    localStorage.setItem("bookCount", bookCount);
+	console.log(this);
   }
 
   getBookSummary = function () {
@@ -61,12 +67,35 @@ class Book {
   };
 }
 
+function loadTableFromLocalStorage() {
+  let count = localStorage.getItem('bookCount');
+  for(let i = 0; i < count; i++) {
+	const storedData = localStorage.getItem(`book--${i}`);
+    const parsedData = JSON.parse(storedData);
+    const book = new Book(
+      parsedData.title,
+      parsedData.author,
+      parsedData.genre,
+      parsedData.hasBeenRead,
+	  i,
+    );
+    const markup = `
+      <tr data-id="table-row-${i}">
+        <td>${book.title}</td>
+        <td>${book.author}</td>
+        <td>${book.genre}</td>
+        <td><span class="checkBox">${book.hasBeenRead ? "✅" : "❌"}</span></td>
+        <td><button class="delBtn">Remove</button></td>
+      </tr>
+    `;
+    booksTable.insertAdjacentHTML("beforeend", markup);
+  }
+};
+
 function createLocalStorage() {
   if (localStorage.getItem("bookCount")) return;
   else localStorage.setItem("bookCount", 0);
-
-  if (localStorage.getItem(`library`)) return;
-  else localStorage.setItem("library", []);
+  bookCount = localStorage.getItem("bookCount");
 }
 
 function closeModal() {
@@ -74,6 +103,7 @@ function closeModal() {
 }
 
 function openModal() {
+  canClose = false;
   modal.classList.remove("hidden");
 }
 
@@ -86,10 +116,6 @@ function resetInputFields() {
 
 function hideWarningMessage() {
   warningMsg.classList.add("hidden");
-}
-
-function hideNumberWarningMessage() {
-  numberWarning.classList.add("hidden");
 }
 
 /* -------- Functionality of the page -------- */
@@ -109,25 +135,22 @@ window.addEventListener("keydown", (e) => {
 
 submitBtn.addEventListener("click", (e) => {
   e.preventDefault();
+  const id = Number(localStorage.getItem('bookCount'));
+  console.log(id);
   const book = new Book(
     titleGl.value,
     authorGl.value,
     genreGl.value,
-    isReadGl.checked
+    isReadGl.checked,
+    id,
   );
-
+ 
   book.addBookToLibrary();
-  book.insertBookToTable();
+  
   if (canClose) {
     hideWarningMessage();
     closeModal();
     resetInputFields();
-    canClose = false;
-    booksTable.addEventListener("click", (e) => {
-      const btn = e.target.closest(".delBtn");
-      if (!btn) return;
-      btn.closest("tr").remove();
-    });
     canClose = false;
   }
 });
@@ -136,21 +159,28 @@ submitBtn.addEventListener("click", (e) => {
 window.addEventListener("click", (e) => {
   const read = e.target.closest(".checkBox");
   if (!read) return;
+  console.log(e.target.closest('tr'));
   read.textContent = read.textContent == "✅" ? "❌" : "✅";
 });
 
+window.addEventListener("click", (e) => {
+  const deleteBtn = e.target.closest(".delBtn");
+  if (!deleteBtn) return;
+  
+  const row = e.target.closest('tr');  
+  const id = row.dataset.id.slice(-1);
+  row.remove();
+ 
+  localStorage.removeItem(`book--${id}`);
+  
+  let bookCount = localStorage.getItem('bookCount');
+  bookCount--;
+  localStorage.setItem('bookCount', bookCount);
+  console.log(bookCount);
+});
+
 window.addEventListener("load", () => {
-  let bookCount = localStorage.getItem("bookCount");
-  console.log(`Book count is: ${bookCount}`);
-  for (let i = 0; i < bookCount; i++) {
-    const storedData = localStorage.getItem(`book--${i}`);
-    const parsedData = JSON.parse(storedData);
-    const book = new Book(
-      parsedData.title,
-      parsedData.author,
-      parsedData.genre,
-      parsedData.hasBeenRead
-    );
-    book.insertBookToTable();
-  }
+
+  console.log(localStorage.getItem('bookCount'));
+  loadTableFromLocalStorage();
 });
