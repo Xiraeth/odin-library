@@ -68,7 +68,6 @@ function loadTableFromLocalStorage() {
     const storedData = localStorage.getItem(`book--${i}`);
     if (!storedData) continue;
     const parsedData = JSON.parse(storedData);
-    console.log(parsedData);
     const book = new Book(
       parsedData.title,
       parsedData.author,
@@ -168,8 +167,15 @@ submitBtn.addEventListener("click", (e) => {
 window.addEventListener("click", (e) => {
   const read = e.target.closest(".checkBox");
   if (!read) return;
-  console.log(e.target.closest("tr"));
+
+  const row = e.target.closest("tr");
+  const id = row.dataset.id.slice(-1);
+  const book = JSON.parse(localStorage.getItem(`book--${id}`));
+
   read.textContent = read.textContent == "✅" ? "❌" : "✅";
+  book.hasBeenRead = book.hasBeenRead == false ? true : false;
+
+  localStorage.setItem(`book--${id}`, JSON.stringify(book));
 });
 
 /* ---------- Remove item from local storage and table ---------- */
