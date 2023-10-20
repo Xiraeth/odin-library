@@ -37,7 +37,6 @@ class Book {
 	  console.log(canClose);
       return;
     }
-    let bookCount = localStorage.getItem("bookCount");
     localStorage.setItem(`book--${bookCount}`, JSON.stringify(this));
     bookCount++;
     localStorage.setItem("bookCount", bookCount);
@@ -71,6 +70,7 @@ function loadTableFromLocalStorage() {
   let count = localStorage.getItem('bookCount');
   for(let i = 0; i < count; i++) {
 	const storedData = localStorage.getItem(`book--${i}`);
+	if(!storedData) continue;
     const parsedData = JSON.parse(storedData);
     const book = new Book(
       parsedData.title,
@@ -92,8 +92,15 @@ function loadTableFromLocalStorage() {
   }
 };
 
+function updateLocalStorage() {
+	bookCount--;
+}
+
 function createLocalStorage() {
-  if (localStorage.getItem("bookCount")) return;
+  if (localStorage.getItem("bookCount")) {
+	bookCount = localStorage.getItem("bookCount");
+	return;
+  }
   else localStorage.setItem("bookCount", 0);
   bookCount = localStorage.getItem("bookCount");
 }
@@ -163,24 +170,23 @@ window.addEventListener("click", (e) => {
   read.textContent = read.textContent == "✅" ? "❌" : "✅";
 });
 
+/* ---------- Remove item from local storage and table ---------- */
 window.addEventListener("click", (e) => {
   const deleteBtn = e.target.closest(".delBtn");
   if (!deleteBtn) return;
-  
-  const row = e.target.closest('tr');  
+
+  const row = e.target.closest('tr');
   const id = row.dataset.id.slice(-1);
   row.remove();
  
   localStorage.removeItem(`book--${id}`);
   
-  let bookCount = localStorage.getItem('bookCount');
+  // INSERT CODE TO CHANGE ROW-IDS AND BOOK IDS
+  
   bookCount--;
   localStorage.setItem('bookCount', bookCount);
-  console.log(bookCount);
 });
 
 window.addEventListener("load", () => {
-
-  console.log(localStorage.getItem('bookCount'));
   loadTableFromLocalStorage();
 });
