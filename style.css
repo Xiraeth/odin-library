@@ -47,7 +47,8 @@ td {
   /* margin-top: 200px; */
 }
 
-.addBook {
+.addBook,
+.clearLocalStorage {
   background-color: white;
   color: black;
   padding: 10px 20px;
@@ -56,16 +57,21 @@ td {
   border-radius: 15px;
   cursor: pointer;
   transition: all 0.15s;
+}
+
+.addBook {
   position: absolute;
   top: 30px;
   left: 30px;
 }
 
-.addBook:hover {
+.addBook:hover,
+.clearLocalStorage:hover {
   background-color: mistyrose;
 }
 
-.addBook:active {
+.addBook:active,
+.clearLocalStorage:active {
   transform: translateY(3px);
 }
 
@@ -205,4 +211,10 @@ form {
 
 .delBtn:active {
   background: rgb(161, 13, 43);
+}
+
+.clearLocalStorage {
+  position: absolute;
+  top: 30px;
+  right: 30px;
 }

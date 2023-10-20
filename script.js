@@ -6,6 +6,7 @@ const modal = document.querySelector(".modal");
 const closeModalButton = document.querySelector(".modal-content span");
 const submitBtn = document.querySelector('button[type="submit"]');
 const warningMsg = document.querySelector(".warning");
+const clearStorageBtn = document.querySelector(".clearLocalStorage");
 
 const titleGl = document.querySelector("#title");
 const authorGl = document.querySelector("#author");
@@ -17,8 +18,6 @@ let canClose = false;
 let delBtns;
 let bookCount;
 
-  // localStorage.clear();
-
 const testBtn = document.querySelector(".test");
 
 class Book {
@@ -27,25 +26,24 @@ class Book {
     this.author = author;
     this.genre = genre;
     this.hasBeenRead = hasBeenRead;
-	this.id = id;
+    this.id = id;
   }
 
   addBookToLibrary() {
     if (this.title == "" || this.genre == "" || this.author == "") {
       warningMsg.classList.remove("hidden");
       setTimeout(hideWarningMessage, 3000);
-	  console.log(canClose);
       return;
     }
     localStorage.setItem(`book--${bookCount}`, JSON.stringify(this));
     bookCount++;
     localStorage.setItem("bookCount", bookCount);
-	
-	this.insertBookToTable();
+
+    this.insertBookToTable();
   }
 
   insertBookToTable() {
-	let count = localStorage.getItem('bookCount');
+    let count = localStorage.getItem("bookCount");
     const markup = `
       <tr data-id="table-row-${count - 1}">
         <td>${this.title}</td>
@@ -58,7 +56,6 @@ class Book {
     booksTable.insertAdjacentHTML("beforeend", markup);
     delBtns = document.querySelectorAll(".delBtn");
     canClose = true;
-	console.log(this);
   }
 
   getBookSummary = function () {
@@ -67,17 +64,17 @@ class Book {
 }
 
 function loadTableFromLocalStorage() {
-  let count = localStorage.getItem('bookCount');
-  for(let i = 0; i < count; i++) {
-	const storedData = localStorage.getItem(`book--${i}`);
-	if(!storedData) continue;
+  for (let i = 0; i < bookCount; i++) {
+    const storedData = localStorage.getItem(`book--${i}`);
+    if (!storedData) continue;
     const parsedData = JSON.parse(storedData);
+    console.log(parsedData);
     const book = new Book(
       parsedData.title,
       parsedData.author,
       parsedData.genre,
       parsedData.hasBeenRead,
-	  i,
+      i
     );
     const markup = `
       <tr data-id="table-row-${i}">
@@ -90,18 +87,17 @@ function loadTableFromLocalStorage() {
     `;
     booksTable.insertAdjacentHTML("beforeend", markup);
   }
-};
+}
 
 function updateLocalStorage() {
-	bookCount--;
+  bookCount--;
 }
 
 function createLocalStorage() {
   if (localStorage.getItem("bookCount")) {
-	bookCount = localStorage.getItem("bookCount");
-	return;
-  }
-  else localStorage.setItem("bookCount", 0);
+    bookCount = localStorage.getItem("bookCount");
+    return;
+  } else localStorage.setItem("bookCount", 0);
   bookCount = localStorage.getItem("bookCount");
 }
 
@@ -128,6 +124,12 @@ function hideWarningMessage() {
 /* -------- Functionality of the page -------- */
 createLocalStorage();
 
+// Clear local storage
+clearStorageBtn.addEventListener("click", (e) => {
+  localStorage.clear();
+  location.reload();
+});
+
 // Open modal
 addBookBtn.addEventListener("click", openModal);
 
@@ -142,18 +144,18 @@ window.addEventListener("keydown", (e) => {
 
 submitBtn.addEventListener("click", (e) => {
   e.preventDefault();
-  const id = Number(localStorage.getItem('bookCount'));
+  const id = Number(localStorage.getItem("bookCount"));
   console.log(id);
   const book = new Book(
     titleGl.value,
     authorGl.value,
     genreGl.value,
     isReadGl.checked,
-    id,
+    id
   );
- 
+
   book.addBookToLibrary();
-  
+
   if (canClose) {
     hideWarningMessage();
     closeModal();
@@ -166,7 +168,7 @@ submitBtn.addEventListener("click", (e) => {
 window.addEventListener("click", (e) => {
   const read = e.target.closest(".checkBox");
   if (!read) return;
-  console.log(e.target.closest('tr'));
+  console.log(e.target.closest("tr"));
   read.textContent = read.textContent == "✅" ? "❌" : "✅";
 });
 
@@ -175,18 +177,23 @@ window.addEventListener("click", (e) => {
   const deleteBtn = e.target.closest(".delBtn");
   if (!deleteBtn) return;
 
-  const row = e.target.closest('tr');
-  const id = row.dataset.id.slice(-1);
+  const row = e.target.closest("tr");
+  const id = Number(row.dataset.id.slice(-1));
   row.remove();
- 
+
   localStorage.removeItem(`book--${id}`);
-  
-  // INSERT CODE TO CHANGE ROW-IDS AND BOOK IDS
-  
+
+  for (let i = id; i < bookCount; i++) {
+    const book = JSON.parse(localStorage.getItem(`book--${i}`));
+    if (!book) return;
+    book.id = id - 1;
+  }
+
   bookCount--;
-  localStorage.setItem('bookCount', bookCount);
+  localStorage.setItem("bookCount", bookCount);
 });
 
 window.addEventListener("load", () => {
+  console.log(bookCount);
   loadTableFromLocalStorage();
 });
