@@ -107,6 +107,7 @@ function closeModal() {
 function openModal() {
   canClose = false;
   modal.classList.remove("hidden");
+  titleGl.focus();
 }
 
 function resetInputFields() {
